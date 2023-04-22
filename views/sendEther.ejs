@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Send Ether</title>
+    <link rel="stylesheet" href="/css/style.css">
+
+  </head>
+  <body>
+    <h1>Send Ether</h1>
+    <form action="/send" method="post">
+      <label for="toAddress">Recipient Address:</label>
+      <input type="text" id="toAddress" name="toAddress"><br><br>
+      <label for="amount">Amount:</label>
+      <input type="text" id="amount" name="amount"><br><br>
+      <label for="mnemonic">Mnemonic:</label>
+      <input type="text" id="mnemonic" name="mnemonic"><br><br>
+      <input type="submit" value="Send">
+    </form>
+  </body>
+</html>

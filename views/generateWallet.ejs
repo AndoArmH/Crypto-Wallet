@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Generated Wallet</title>
+    <style>
+      body {
+        background-color: #f2f2f2;
+        margin: 0;
+        padding: 0;
+      }
+      main {
+        margin: 0 auto;
+        max-width: 800px;
+        padding: 20px;
+      }
+      .wallet {
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        margin-bottom: 20px;
+      }
+      .wallet h2 {
+        margin-top: 0;
+      }
+      header {
+        background-color: #333;
+        color: #fff;
+        text-align: center;
+        padding: 10px 0;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>CRYPTO WALLET</h1>
+    </header>
+    <main>
+      <div class="wallet">
+        <h2>New Wallet Generated</h2>
+        <p>Your mnemonic phrase is:</p>
+        <p><%= mnemonic %></p>
+        <p>Please keep this phrase secure.</p>
+      </div>
+    </main>
+  </body>
+</html>
