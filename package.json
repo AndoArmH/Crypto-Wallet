@@ -1,0 +1,31 @@
+{
+  "scripts": {
+    "start": "node crypto.js"
+  },
+  "dependencies": {
+    "@trustwallet/wallet-core": "^3.1.14",
+    "alchemy-sdk": "^2.6.2",
+    "axios": "^1.3.5",
+    "bip32": "^4.0.0",
+    "bip39": "^3.1.0",
+    "bitcoinjs-lib": "^4.0.3",
+    "dotenv": "^16.0.3",
+    "ejs": "^3.1.9",
+    "ethereum-hdwallet": "^0.1.2",
+    "ethereumjs-util": "^7.1.5",
+    "ethereumjs-wallet": "^1.0.2",
+    "ethers": "^5.4.1",
+    "express": "^4.18.2",
+    "express-session": "^1.17.3",
+    "hdkey": "^2.1.0",
+    "node-fetch": "^2.6.1",
+    "tiny-secp256k1": "^2.2.1",
+    "web3": "^1.9.0"
+  },
+  "resolutions": {
+    "bitcore-lib": "^10.0.5"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
