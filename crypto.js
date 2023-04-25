@@ -15,6 +15,7 @@ const HDWallet = require('ethereum-hdwallet');
 const { Alchemy, Network } = require("alchemy-sdk");
 
 const bitcoin = require('bitcoinjs-lib');
+const bitcore = require("bitcore-lib");
 
 const ecc = require('tiny-secp256k1');
 const { BIP32Factory } = require('bip32');
@@ -106,18 +107,18 @@ app.get('/generateWallet', (req, res) => {
 });
 //get balance for bitcoin-----------------------------------------------------------
 
-async function getBTCBalance(address){
+async function getBTCBalance(address) {
   const url = `https://blockchain.info/rawaddr/${address}?cors=true`;
 
   return fetch(url)
-  .then(response => response.json())
-  .then(data => {
-    const finalBalance = data.final_balance;
-    const bitcoin = finalBalance / 100000000;
-    console.log(`The final balance for ${address} is ${bitcoin} BTC.`);
-    return bitcoin;
-  })
-  .catch(error => console.error(error));
+    .then(response => response.json())
+    .then(data => {
+      const finalBalance = data.final_balance;
+      const bitcoin = finalBalance / 100000000;
+      console.log(`The final balance for ${address} is ${bitcoin} BTC.`);
+      return bitcoin;
+    })
+    .catch(error => console.error(error));
 }
 //get transaction history for bitcoin---------------------------------------------------
 async function getTransactions(address, transactions) {
@@ -127,7 +128,7 @@ async function getTransactions(address, transactions) {
     const response = await fetch(url);
     const data = await response.json();
 
-    
+
     //console.log(`The final balance for ${address} is ${bitcoin} BTC.`);
 
     //const transactions = [];
@@ -137,11 +138,11 @@ async function getTransactions(address, transactions) {
       tx.out.forEach(output => {
         const value = output.value / 100000000;
         const toAddress = output.addr;
-        if(toAddress === address) {
+        if (toAddress === address) {
           //console.log(`  Received ${value} BTC from ${tx.inputs[0].prev_out.addr}`);
-          transactions.push([hash,tx.inputs[0].prev_out.addr,address, `+${value} BTC`]);
-        } else if(tx.inputs[0].prev_out.addr === address) {
-          transactions.push([hash,address,tx.inputs[0].prev_out.addr, `-${value} BTC`]);
+          transactions.push([hash, tx.inputs[0].prev_out.addr, address, `+${value} BTC`]);
+        } else if (tx.inputs[0].prev_out.addr === address) {
+          transactions.push([hash, address, tx.inputs[0].prev_out.addr, `-${value} BTC`]);
           //console.log(`  Sent ${value} BTC to ${toAddress}`);
         }
       });
@@ -170,46 +171,46 @@ app.post('/login', async (req, res) => {
   //ETHEREUM PORTION------------------------------------------------------------------------------
 
   const hdwallet = HDWallet.fromMnemonic(mnemonic);
-  
+
   console.log(`0x${hdwallet.derive(`m/44'/60'/0'/0/0`).getAddress().toString('hex')}`);
   const address = "0x" + hdwallet.derive(`m/44'/60'/0'/0/0`).getAddress().toString('hex');
   const balanceInWei = await web3.eth.getBalance(address);
   const balance = web3.utils.fromWei(balanceInWei, 'ether');
-  console.log('balance is '+ balance + ' eth');
- 
+  console.log('balance is ' + balance + ' eth');
+
   const transactions = await getData(address);
   console.log(transactions);
 
-//------------------------------------------------------------------------------------------------
+  //------------------------------------------------------------------------------------------------
 
-//BITCOIN PORTION---------------------------------------------------------------------------------
-const seed = bip39.mnemonicToSeedSync(mnemonic);
-let root = bip32.fromSeed(seed, BTCnetwork);
+  //BITCOIN PORTION---------------------------------------------------------------------------------
+  const seed = bip39.mnemonicToSeedSync(mnemonic);
+  let root = bip32.fromSeed(seed, BTCnetwork);
 
-let account = root.derivePath(path);
-let node = account.derive(0).derive(0);
-let btcAddress = bitcoin.payments.p2pkh({
-  pubkey: node.publicKey,
-  network: BTCnetwork,
-}).address;
+  let account = root.derivePath(path);
+  let node = account.derive(0).derive(0);
+  let btcAddress = bitcoin.payments.p2pkh({
+    pubkey: node.publicKey,
+    network: BTCnetwork,
+  }).address;
 
 
 
-console.log(`
+  console.log(`
 Wallet generated:
  - Address  : ${btcAddress},
  - Key : ${node.toWIF()}, 
  - Mnemonic : ${mnemonic}
 `);
 
-// Make a GET request to the balance endpoint
-const BTCbalance = await getBTCBalance(btcAddress);
-console.log(BTCbalance);
-const Updatedtransactions = await getTransactions(btcAddress, transactions);
-console.log(Updatedtransactions);
+  // Make a GET request to the balance endpoint
+  const BTCbalance = await getBTCBalance(btcAddress);
+  console.log(BTCbalance);
+  const Updatedtransactions = await getTransactions(btcAddress, transactions);
+  console.log(Updatedtransactions);
 
 
-//---------------------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------------------
 
 
 
@@ -218,12 +219,12 @@ console.log(Updatedtransactions);
 
 
 
- app.get('/send', (req, res) => {
+app.get('/send', (req, res) => {
   res.render('sendEther');
 });
 // POST /sendEther
 app.post('/send', async (req, res) => {
-  const { toAddress, amount, mnemonic} = req.body;
+  const { toAddress, amount, mnemonic } = req.body;
 
   const hdwallet = HDWallet.fromMnemonic(mnemonic);
   const address = `0x${hdwallet.derive(`m/44'/60'/0'/0/0`).getAddress().toString('hex')}`;
@@ -231,16 +232,16 @@ app.post('/send', async (req, res) => {
 
   // Convert amount to wei
   const value = web3.utils.toWei(amount, 'ether');
-  
 
-   // Create transaction object
-   const transaction = {
+
+  // Create transaction object
+  const transaction = {
     from: address,
     to: toAddress,
     value: value,
     gas: 21000, // Add gas limit here
   };
-  
+
 
   try {
     // Get nonce for sender's account
@@ -292,49 +293,81 @@ app.post('/send', async (req, res) => {
 app.post('/sendBTC', async (req, res) => {
   try {
     const { toAddress, amount, mnemonic } = req.body;
-    const seed = await bip39.mnemonicToSeed(mnemonic);
-    const root = bitcoin.bip32.fromSeed(seed, BTCnetwork).derivePath(path);
-    const keyPair = bitcoin.ECPair.fromWIF(root.toWIF(), BTCnetwork);
+    const seed = bip39.mnemonicToSeedSync(mnemonic);
+    let root = bip32.fromSeed(seed, BTCnetwork);
 
-    const root1 = bip32.fromSeed(seed, BTCnetwork);
-    let account = root1.derivePath(path);
+    let account = root.derivePath(path);
     let node = account.derive(0).derive(0);
     let btcAddress = bitcoin.payments.p2pkh({
-       pubkey: node.publicKey,
+      pubkey: node.publicKey,
       network: BTCnetwork,
     }).address;
 
-    const tx = new bitcoin.TransactionBuilder(BTCnetwork);
-    tx.addOutput(toAddress, amount * 100000000);
 
-    const unspent = await getUnspentTransactions(btcAddress, BTCnetwork);
-    const txid = unspent[0].txid;
-    const vout = unspent[0].vout;
+    console.log(`
+      Wallet generated:
+      - Address  : ${btcAddress},
+      - Key : ${node.toWIF()}, 
+      - Mnemonic : ${mnemonic}
+    `   );
+    const privateKey = bitcoin.ECPair.fromWIF(node.toWIF(), BTCnetwork);
 
-    tx.addInput(txid, vout);
 
-    tx.sign(0, keyPair);
+    const amount1 = Math.floor(amount * 100000000); // in satoshis
+const feePerByte = 10; // in satoshis
 
-    const serializedTx = tx.build().toHex();
+// Fetch UTXOs for the Bitcoin address
+const response = await axios.get(`https://blockstream.info/api/address/${btcAddress}/utxo`);
+const utxos = response.data;
 
-    const result = await broadcastTransaction(serializedTx);
-    res.json(result);
+// Create a new transaction
+const tx = new bitcoin.TransactionBuilder(BTCnetwork);
+console.log("checkpoint 0");
+
+// Add the inputs to the transaction
+let totalAmountAvailable = 0;
+for (const utxo of utxos) {
+  tx.addInput(utxo.txid, utxo.vout);
+  totalAmountAvailable += utxo.value;
+}
+console.log("checkpoint 1");
+
+// Add the output to the transaction
+tx.addOutput(toAddress, amount1);
+console.log("checkpoint 2");
+
+//WERE GOOD TILL HERE
+// Calculate the fee and add it to the output
+const fee = feePerByte * tx.buildIncomplete().virtualSize();
+const change = totalAmountAvailable - amount1 - fee;
+if (change > 0) {
+  tx.addOutput(btcAddress, change);
+}
+console.log("checkpoint 3");
+
+// Sign the transaction
+for (let i = 0; i < utxos.length; i++) {
+  tx.sign(i, privateKey);
+}
+
+// Broadcast the transaction
+const hex = tx.build().toHex();
+await axios.post('https://blockstream.info/api/tx', hex);
+console.log('transaction success');
+   
+
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });
   }
 });
 
-async function getUnspentTransactions(address, network) {
-  try {
-    const url = `https://blockstream.info/api/address/${address}/utxo`;
-    const response = await axios.get(url);
-    return response.data;
-  } catch (err) {
-    console.error(err);
-  }
-}
 
+async function getFeePerByte() {
+  const response = await axios.get('https://blockstream.info/api/fee-estimates');
+  const feePerByte = response.data['2']; // or another fee rate, depending on your needs
+  return feePerByte;
+}
 
 
 
