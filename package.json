@@ -9,6 +9,7 @@
     "bip32": "^4.0.0",
     "bip39": "^3.1.0",
     "bitcoinjs-lib": "^4.0.3",
+    "bitcore-lib": "^10.0.5",
     "dotenv": "^16.0.3",
     "ejs": "^3.1.9",
     "ethereum-hdwallet": "^0.1.2",
