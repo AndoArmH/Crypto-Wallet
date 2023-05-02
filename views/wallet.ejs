@@ -157,6 +157,8 @@ tbody {
       <h3 class="wallet-info">Ethereum Balance: <%= balance %> ETH</h3>
       <h3 class="wallet-info">Bitcoin Address: <%= btcAddress %></h3>
       <h3 class="wallet-info">Bitcoin Balance: <%= BTCbalance %> BTC</h3>
+      <h3 class="wallet-info">Solana Address: <%= addressSol %></h3>
+      <h3 class="wallet-info">Solana Balance: <%= balanceSol %> SOL</h3>
       <div style="text-align: center;">
         <h2 class="wallet-info">Transaction History</h2>
       </div>
@@ -171,12 +173,12 @@ tbody {
         </tr>
       </thead>
       <tbody>
-        <% for (let i = 0; i < Updatedtransactions.length; i++) { %>
+        <% for (let i = 0; i < finalTransactions.length; i++) { %>
           <tr>
-            <td><%= Updatedtransactions[i][0] %></td>
-    <td><%= Updatedtransactions[i][1] %></td>
-    <td><%= Updatedtransactions[i][2] %></td>
-    <td><%= Updatedtransactions[i][3] %> </td>
+            <td><%= finalTransactions[i][0] %></td>
+    <td><%= finalTransactions[i][1] %></td>
+    <td><%= finalTransactions[i][2] %></td>
+    <td><%= finalTransactions[i][3] %> </td>
             
           </tr>
         <% } %>
@@ -219,6 +221,25 @@ tbody {
       </div>
       <div>
         <button type="submit">Send Bitcoin</button>
+      </div>
+    </form>
+    <form class = "sendEth" method="POST" action="/sendSOL">
+      <br><br>
+      <h1>Send Solana</h1>
+      <div>
+        <label for="toAddress">To Address:</label>
+        <input type="text" id="toAddress" name="toAddress" required>
+      </div>
+      <div>
+        <label for="amount">Amount:</label>
+        <input type="text" id="amount" name="amount" required>
+      </div>
+      <div>
+        <label for="mnemonic">Mnemonic:</label>
+        <input type="text" id="mnemonic" name="mnemonic" required>
+      </div>
+      <div>
+        <button type="submit">Send Solana</button>
       </div>
     </form>
   </div>
