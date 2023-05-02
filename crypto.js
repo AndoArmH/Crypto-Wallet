@@ -15,7 +15,6 @@ const HDWallet = require('ethereum-hdwallet');
 const { Alchemy, Network } = require("alchemy-sdk");
 
 const bitcoin = require('bitcoinjs-lib');
-const bitcore = require("bitcore-lib");
 
 const ecc = require('tiny-secp256k1');
 const { BIP32Factory } = require('bip32');
@@ -30,6 +29,15 @@ const BTCnetwork = bitcoin.networks.bitcoin; // use networks.testnet for testnet
 
 // Derivation path
 const path = `m/49'/0'/0'/0`; // Use m/49'/1'/0'/0 for testnet
+//const path = `m/44'/60'/0'/0/0`; // Use m/49'/1'/0'/0 for testnet
+
+
+//for solana
+const { Connection, PublicKey, Keypair, SystemProgram } = require('@solana/web3.js');
+const solanaWeb3 = require('@solana/web3.js');
+
+const endpoint = 'https://alpha-long-pallet.solana-mainnet.discover.quiknode.pro/45fd0798b7a22da534b06d6780695cef40721fd1/';
+const solanaConnection = new solanaWeb3.Connection(endpoint);
 
 
 
@@ -77,24 +85,7 @@ async function getData(toAddress) {
 
   return transfers;
 }
-// async function getData(toAddress) {
-//   const config = {
-//     apiKey: "zecUNVefCMDdj--04wYXMKYDftudebyz",
-//     network: Network.ETH_MAINNET,
-//   };
-//   const alchemy = new Alchemy(config);
 
-//   const data = await alchemy.core.getAssetTransfers({
-//     fromBlock: "0x0",
-//     toAddress: toAddress,
-//     category: ["external", "internal", "erc20", "erc721", "erc1155"],
-//   });
-
-//   const transfers = data.transfers;
-
-
-//   return transfers; // return the transfers array
-// }
 
 // Parse incoming request bodies in a middleware before your handlers
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -156,6 +147,41 @@ async function getTransactions(address, transactions) {
   }
 }
 
+//Get transaction history for SOLANA----------------------------------
+async function getTransactionHistory(address, transactions) {
+  const pubKey = new solanaWeb3.PublicKey(address);
+  let transactionList = await solanaConnection.getSignaturesForAddress(pubKey, {limit: 50});
+  let signatureList = transactionList.map(transaction => transaction.signature);
+  let transactionDetails = await solanaConnection.getParsedTransactions(signatureList);
+
+  for (let i = 0; i < transactionDetails.length; i++) {
+    const tx = transactionDetails[i];
+    const message = tx.transaction.message.accountKeys;
+    const fromAddress = message[0].pubkey.toBase58();
+    const toAddress = message[1].pubkey.toBase58();
+    const hash = transactionList[i].signature;
+    
+
+    const parsedObj = tx.transaction.message.instructions[0]['parsed'];
+    const amount = parsedObj.info.lamports / 1000000000;
+
+    if(parsedObj.info.destination === address){
+      transactions.push([hash, fromAddress, toAddress, `+${amount} SOL`]);
+    }else if(parsedObj.info.source === address){
+      transactions.push([hash, toAddress, fromAddress, `-${amount} SOL`]);
+    }
+
+    
+
+   
+  
+    // const recipient = message.accountKeys[1];
+    // const amount = message.instructions[0].parsed.data.amount;
+  }
+
+  return transactions;
+}
+
 // Define a route for the login page
 app.get('/login', (req, res) => {
   console.log('inside login.get');
@@ -184,6 +210,7 @@ app.post('/login', async (req, res) => {
   //------------------------------------------------------------------------------------------------
 
   //BITCOIN PORTION---------------------------------------------------------------------------------
+  
   const seed = bip39.mnemonicToSeedSync(mnemonic);
   let root = bip32.fromSeed(seed, BTCnetwork);
 
@@ -193,6 +220,8 @@ app.post('/login', async (req, res) => {
     pubkey: node.publicKey,
     network: BTCnetwork,
   }).address;
+
+ 
 
 
 
@@ -212,9 +241,24 @@ Wallet generated:
 
   //---------------------------------------------------------------------------------------------------
 
+  // SOLANA PORTION------------------------------------------------------------------------------
+  const seedSol = await bip39.mnemonicToSeed(mnemonic);
+  const derivedSeed = seedSol.slice(0, 32);
+  const keypair = Keypair.fromSeed(derivedSeed);
+  console.log(keypair.publicKey.toString());
+  const addressSol = keypair.publicKey.toString();
+  const connection = new Connection('https://api.mainnet-beta.solana.com');
+  let bSol = await connection.getBalance(keypair.publicKey);
+  const balanceSol = bSol / 1000000000;
+  console.log('balance is ' + balanceSol / 1e9 + ' SOL');
+  let finalTransactions = [];
+  finalTransactions = await getTransactionHistory(addressSol, Updatedtransactions);
+  console.log('transaction history is');
+  console.log(finalTransactions);
 
 
-  res.render('wallet', { address, btcAddress, BTCbalance, balance, Updatedtransactions });
+
+  res.render('wallet', { address, btcAddress, BTCbalance, balance, addressSol, balanceSol, finalTransactions });
 });
 
 
@@ -265,30 +309,7 @@ app.post('/send', async (req, res) => {
   }
 });
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //SEND FXN for BTC---------------------------------------------------------------
-
-
-
-
-
-
-
 // POST /sendBTC
 app.post('/sendBTC', async (req, res) => {
   try {
@@ -362,6 +383,45 @@ console.log('transaction success');
   }
 });
 
+//Send fxn for SOLANA----------------------------------------------------------------------------------------------------------------------
+app.post('/sendSOL', async (req, res) => {
+  const { toAddress, amount, mnemonic } = req.body;
+  const connection = new Connection('https://api.mainnet-beta.solana.com');
+  const seed = await bip39.mnemonicToSeed(mnemonic);
+  const derivedSeed = seed.slice(0, 32);
+  const keypair = Keypair.fromSeed(derivedSeed);
+  const senderAddress = keypair.publicKey;
+  const senderPrivate = keypair.secretKey;
+  const from = solanaWeb3.Keypair.fromSecretKey(new Uint8Array(senderPrivate));
+  // Convert amount to lamports
+  const lamport = amount * 1000000000;
+
+  // Fetch sender's account information
+  const senderAccountInfo = await connection.getAccountInfo(senderAddress);
+  if (!senderAccountInfo) {
+    throw new Error(`Sender account ${senderAddress.toBase58()} does not exist`);
+  }
+  (async () => {
+    const transaction = new solanaWeb3.Transaction().add(
+        solanaWeb3.SystemProgram.transfer({
+          fromPubkey: senderAddress,
+          toPubkey: toAddress,
+          lamports: lamport,
+        }),
+      );
+    
+      // Sign transaction, broadcast, and confirm
+      const signature = await solanaWeb3.sendAndConfirmTransaction(
+        solanaConnection,
+        transaction,
+        [from],
+      );
+      console.log('Transaction Success! SIGNATURE(hash): ', signature);
+})()
+
+  
+
+});
 
 async function getFeePerByte() {
   const response = await axios.get('https://blockstream.info/api/fee-estimates');
