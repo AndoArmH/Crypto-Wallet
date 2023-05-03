@@ -1,167 +1,254 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Wallet</title>
 
-    <style>
-      body {
-        background-color: #f0f0f0;
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-      }
+<head>
+  <meta charset="UTF-8">
+  <title>Wallet</title>
 
-      header {
-        background-color: #333;
-        color: #fff;
-        height: 50px;
-        padding: 10px;
-      }
+  <style>
+    body {
+      background-color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
 
-      h1 {
-        margin-top: 0;
-      }
+    header {
+      background-color: #13212D;
+      color: #fff;
+      height: 50px;
+      padding: 10px;
+    }
 
-      table {
-        border-collapse: collapse;
-        width: 100%;
-      }
+    h1 {
+      margin-top: 0;
+    }
 
-      th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-      }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
 
-      th {
-        background-color: #333;
-        color: #fff;
-      }
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
 
-      form {
-        display: inline-block;
-      }
+    th {
+      background-color: #13212D;
+      color: #fff;
+    }
 
-      form button {
-        background-color: #333;
-        border: none;
-        color: #fff;
-        padding: 10px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        cursor: pointer;
-      }
+    form {
+      display: inline-block;
+    }
 
-      form button:hover {
-        background-color: #555;
-      }
+    form button {
+      background-color: #13212D;
+      border: none;
+      color: #fff;
+      padding: 10px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+    }
 
-      label {
-        display: inline-block;
-        width: 150px;
-      }
+    form button:hover {
+      background-color: #555;
+    }
 
-      input[type=text] {
-        width: 50%;
-        padding: 12px 20px;
-        margin: 8px 0;
-        box-sizing: border-box;
-        border: 2px solid #ccc;
-        border-radius: 4px;
-      }
+    label {
+      display: inline-block;
+      width: 150px;
+    }
 
-      input[type=submit] {
-        background-color: #4CAF50;
-        border: none;
-        color: white;
-        padding: 10px 20px;
-        text-align: center;
-        text-decoration: none;
-        display: inline-block;
-        font-size: 16px;
-        margin: 4px 2px;
-        cursor: pointer;
-        border-radius: 4px;
-      }
+    input[type=text] {
+      width: 50%;
+      padding: 12px 20px;
+      margin: 8px 0;
+      box-sizing: border-box;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+    }
 
-      input[type=submit]:hover {
-        background-color: #45a049;
-      }
-      table {
-  margin: 0 auto;
-}
+    input[type=submit] {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
 
-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-header {
-        background-color: #333;
-        color: #fff;
-        text-align: center;
-        padding: 10px 0;
-        margin-bottom: 20px;
-      }
-      #bg-gif {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-        background-image: url('https://thumbs.gfycat.com/BitesizedDesertedBallpython-size_restricted.gif');
-        background-repeat: no-repeat;
-        background-size: cover;
-      }
-      .wallet-info {
-  font-size: 24px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 20px;
-}
-.sendEth{
-  background-color: #f2f2f2;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 20px;
-  margin-top: 20px;
-  margin: 20px;
-  max-width: 600px;
-  display: inline-block;
-}
-.forms-container {
-  display: flex;
-  justify-content: center;
-}
-tbody {
-    background-color: #f1f1f1;
+    input[type=submit]:hover {
+      background-color: #45a049;
+    }
+
+    table {
+      margin: 0 auto;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      background-color: #13212D;
+      color: #fff;
+      text-align: center;
+      padding: 10px 0;
+      margin-bottom: 20px;
+    }
+    .header-image {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    margin-left: 10px;
+    margin-bottom: -15px;
   }
-    </style>
-  </head>
-  
-  <body>
-    <header>
-      <h1>CRYPTO WALLET</h1>
-    </header>
-    <div id="bg-gif"></div>
-    <form method="get" action="/login">
-      <button type="submit">Logout</button>
-    </form>
-    <div style="padding: 20px;">
-      <h3 class="wallet-info">Ethereum Address: <%= address %></h3>
-      <h3 class="wallet-info">Ethereum Balance: <%= balance %> ETH</h3>
-      <h3 class="wallet-info">Bitcoin Address: <%= btcAddress %></h3>
-      <h3 class="wallet-info">Bitcoin Balance: <%= BTCbalance %> BTC</h3>
-      <h3 class="wallet-info">Solana Address: <%= addressSol %></h3>
-      <h3 class="wallet-info">Solana Balance: <%= balanceSol %> SOL</h3>
-      <div style="text-align: center;">
-        <h2 class="wallet-info">Transaction History</h2>
-      </div>
+
+    #bg-gif {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background-image: url('');
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+
+    .wallet-info {
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .sendEth {
+      background-color: #f2f2f2;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 20px;
+      margin-top: 20px;
+      margin: 20px;
+      max-width: 600px;
+      display: inline-block;
+    }
+
+    .forms-container {
+      display: flex;
+      justify-content: center;
+    }
+
+    tbody {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1 style="font-family: Copperplate, Papyrus, fantasy;">CRYPTO WALLET <img src="https://i.ibb.co/YjfFrzm/AppIcon.png" alt="Crypto Wallet Logo" class="header-image"></h1>
+  </header>
+  <div id="bg-gif"></div>
+  <form method="get" action="/login">
+    <button type="submit">Logout</button>
+  </form>
+  <div style="padding: 20px;">
+    <div style="display: inline-flex;">
+    <div style="margin-left: 100px;">
+    <h3 class="wallet-info">Ethereum <img src="https://www.citypng.com/public/uploads/small/11662225468b17snizehiwsims2wniy30tpginmlvry1aapdvfw0j90c79z8tyqgagylhqmvj6krludjrmmmccyr6zgglbziqjtywcdhy7ykebm.png" alt="Crypto Wallet Logo" class="header-image"></h3>
+
+    <h3 >Address: <%= address %></h3>
+    <h3>Balance: <%= balance %> ETH</h3>
+  </div>
+  <div style="margin-left: 100px;">
+    <h3 class="wallet-info">Bitcoin <img src="https://static.vecteezy.com/system/resources/thumbnails/008/505/801/small_2x/bitcoin-logo-color-illustration-png.png" alt="Crypto Wallet Logo" class="header-image"></h3>
+    <h3>Address: <%= btcAddress %></h3>
+    <h3 >Balance: <%= BTCbalance %> BTC</h3>
+  </div>
+  <div style="margin-left: 100px;">
+    <h3 class="wallet-info">Solana <img src="https://upload.wikimedia.org/wikipedia/en/b/b9/Solana_logo.png" alt="Crypto Wallet Logo" class="header-image"></h3>
+    <h3 >Address: <%= addressSol %></h3>
+    <h3 >Balance: <%= balanceSol %> SOL</h3>
+    </div>
+    </div>
+    <div class="forms-container">
+      <form class="sendEth" method="POST" action="/send">
+        <br><br>
+        <h1>Send Ethereum</h1>
+        <div>
+          <label for="toAddress">To Address:</label>
+          <input type="text" id="toAddress" name="toAddress" required>
+        </div>
+        <div>
+          <label for="amount">Amount:</label>
+          <input type="text" id="amount" name="amount" required>
+        </div>
+        <div>
+          <label for="mnemonic">Mnemonic:</label>
+          <input type="text" id="mnemonic" name="mnemonic" required>
+        </div>
+        <div>
+          <button type="submit">Send Ethereum</button>
+        </div>
+      </form>
+      <form class="sendEth" method="POST" action="/sendBTC">
+        <br><br>
+        <h1>Send Bitcoin</h1>
+        <div>
+          <label for="toAddress">To Address:</label>
+          <input type="text" id="toAddress" name="toAddress" required>
+        </div>
+        <div>
+          <label for="amount">Amount:</label>
+          <input type="text" id="amount" name="amount" required>
+        </div>
+        <div>
+          <label for="mnemonic">Mnemonic:</label>
+          <input type="text" id="mnemonic" name="mnemonic" required>
+        </div>
+        <div>
+          <button type="submit">Send Bitcoin</button>
+        </div>
+      </form>
+      <form class="sendEth" method="POST" action="/sendSOL">
+        <br><br>
+        <h1>Send Solana</h1>
+        <div>
+          <label for="toAddress">To Address:</label>
+          <input type="text" id="toAddress" name="toAddress" required>
+        </div>
+        <div>
+          <label for="amount">Amount:</label>
+          <input type="text" id="amount" name="amount" required>
+        </div>
+        <div>
+          <label for="mnemonic">Mnemonic:</label>
+          <input type="text" id="mnemonic" name="mnemonic" required>
+        </div>
+        <div>
+          <button type="submit">Send Solana</button>
+        </div>
+      </form>
+    </div>
+    <div style="text-align: center;">
+      <h1 class="wallet-info">Transaction History</h1>
+    </div>
     <table>
       <thead>
         <tr>
@@ -173,76 +260,27 @@ tbody {
         </tr>
       </thead>
       <tbody>
-        <% for (let i = 0; i < finalTransactions.length; i++) { %>
+        <% for (let i=0; i < finalTransactions.length; i++) { %>
           <tr>
-            <td><%= finalTransactions[i][0] %></td>
-    <td><%= finalTransactions[i][1] %></td>
-    <td><%= finalTransactions[i][2] %></td>
-    <td><%= finalTransactions[i][3] %> </td>
-            
+            <td>
+              <%= finalTransactions[i][0] %>
+            </td>
+            <td>
+              <%= finalTransactions[i][1] %>
+            </td>
+            <td>
+              <%= finalTransactions[i][2] %>
+            </td>
+            <td>
+              <%= finalTransactions[i][3] %>
+            </td>
+
           </tr>
-        <% } %>
+          <% } %>
       </tbody>
     </table>
-    <div class="forms-container">
-    <form class = "sendEth" method="POST" action="/send">
-      <br><br>
-      <h1>Send Ethereum</h1>
-      <div>
-        <label for="toAddress">To Address:</label>
-        <input type="text" id="toAddress" name="toAddress" required>
-      </div>
-      <div>
-        <label for="amount">Amount:</label>
-        <input type="text" id="amount" name="amount" required>
-      </div>
-      <div>
-        <label for="mnemonic">Mnemonic:</label>
-        <input type="text" id="mnemonic" name="mnemonic" required>
-      </div>
-      <div>
-        <button type="submit">Send Ethereum</button>
-      </div>
-    </form>
-    <form class = "sendEth" method="POST" action="/sendBTC">
-      <br><br>
-      <h1>Send Bitcoin</h1>
-      <div>
-        <label for="toAddress">To Address:</label>
-        <input type="text" id="toAddress" name="toAddress" required>
-      </div>
-      <div>
-        <label for="amount">Amount:</label>
-        <input type="text" id="amount" name="amount" required>
-      </div>
-      <div>
-        <label for="mnemonic">Mnemonic:</label>
-        <input type="text" id="mnemonic" name="mnemonic" required>
-      </div>
-      <div>
-        <button type="submit">Send Bitcoin</button>
-      </div>
-    </form>
-    <form class = "sendEth" method="POST" action="/sendSOL">
-      <br><br>
-      <h1>Send Solana</h1>
-      <div>
-        <label for="toAddress">To Address:</label>
-        <input type="text" id="toAddress" name="toAddress" required>
-      </div>
-      <div>
-        <label for="amount">Amount:</label>
-        <input type="text" id="amount" name="amount" required>
-      </div>
-      <div>
-        <label for="mnemonic">Mnemonic:</label>
-        <input type="text" id="mnemonic" name="mnemonic" required>
-      </div>
-      <div>
-        <button type="submit">Send Solana</button>
-      </div>
-    </form>
+
   </div>
-  </div>
-  </body>
+</body>
+
 </html>
