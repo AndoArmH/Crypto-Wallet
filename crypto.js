@@ -21,6 +21,7 @@ const { BIP32Factory } = require('bip32');
 const bip32 = BIP32Factory(ecc);
 const fetch = require('node-fetch');
 const axios = require('axios');
+const functions = require("./functions");
 
 
 //for BTC
@@ -40,13 +41,8 @@ const endpoint = 'https://alpha-long-pallet.solana-mainnet.discover.quiknode.pro
 const solanaConnection = new solanaWeb3.Connection(endpoint);
 
 
-
-
-
-
 const infuraProjectId = 'be53a5827d124da1aa514ee36755c77a';
 const web3 = new Web3(new Web3.providers.HttpProvider(`https://mainnet.infura.io/v3/${infuraProjectId}`));
-const algorithm = 'aes-256-cbc';
 
 
 // Set up EJS as the view engine
@@ -59,128 +55,16 @@ router.use(session({
   saveUninitialized: true
 }));
 
-function generateMnemonic() {
-  return bip39.generateMnemonic();
-}
-//get transaction history into an array by passing address
-async function getData(toAddress) {
-  const config = {
-    apiKey: "zecUNVefCMDdj--04wYXMKYDftudebyz",
-    network: Network.ETH_MAINNET,
-  };
-  const alchemy = new Alchemy(config);
-
-  const data = await alchemy.core.getAssetTransfers({
-    fromBlock: "0x0",
-    toAddress: toAddress,
-    category: ["external", "internal", "erc20", "erc721", "erc1155"],
-  });
-
-  const transfers = [];
-
-  data.transfers.forEach(transfer => {
-    const { hash, from, to, value } = transfer;
-    transfers.push({ hash, from, to, value });
-  });
-
-  return transfers;
-}
-
-
 // Parse incoming request bodies in a middleware before your handlers
 app.use(bodyParser.urlencoded({ extended: false }));
 
 
 // Generate a new Ethereum wallet 
 app.get('/generateWallet', (req, res) => {
-  const mnemonic = generateMnemonic();
+  const mnemonic = functions.generateMnemonic();
   res.render('generateWallet', { mnemonic });
 });
-//get balance for bitcoin-----------------------------------------------------------
 
-async function getBTCBalance(address) {
-  const url = `https://blockchain.info/rawaddr/${address}?cors=true`;
-
-  return fetch(url)
-    .then(response => response.json())
-    .then(data => {
-      const finalBalance = data.final_balance;
-      const bitcoin = finalBalance / 100000000;
-      console.log(`The final balance for ${address} is ${bitcoin} BTC.`);
-      return bitcoin;
-    })
-    .catch(error => console.error(error));
-}
-//get transaction history for bitcoin---------------------------------------------------
-async function getTransactions(address, transactions) {
-  const url = `https://blockchain.info/rawaddr/${address}?cors=true`;
-
-  try {
-    const response = await fetch(url);
-    const data = await response.json();
-
-
-    //console.log(`The final balance for ${address} is ${bitcoin} BTC.`);
-
-    //const transactions = [];
-    //console.log(`Transactions:`);
-    data.txs.forEach(tx => {
-      const hash = tx.hash;
-      tx.out.forEach(output => {
-        const value = output.value / 100000000;
-        const toAddress = output.addr;
-        if (toAddress === address) {
-          //console.log(`  Received ${value} BTC from ${tx.inputs[0].prev_out.addr}`);
-          transactions.push([hash, tx.inputs[0].prev_out.addr, address, `+${value} BTC`]);
-        } else if (tx.inputs[0].prev_out.addr === address) {
-          transactions.push([hash, address, tx.inputs[0].prev_out.addr, `-${value} BTC`]);
-          //console.log(`  Sent ${value} BTC to ${toAddress}`);
-        }
-      });
-    });
-
-    //console.log(transactions);
-    return transactions;
-
-  } catch (error) {
-    console.error(error);
-  }
-}
-
-//Get transaction history for SOLANA----------------------------------
-async function getTransactionHistory(address, transactions) {
-  const pubKey = new solanaWeb3.PublicKey(address);
-  let transactionList = await solanaConnection.getSignaturesForAddress(pubKey, {limit: 50});
-  let signatureList = transactionList.map(transaction => transaction.signature);
-  let transactionDetails = await solanaConnection.getParsedTransactions(signatureList);
-
-  for (let i = 0; i < transactionDetails.length; i++) {
-    const tx = transactionDetails[i];
-    const message = tx.transaction.message.accountKeys;
-    const fromAddress = message[0].pubkey.toBase58();
-    const toAddress = message[1].pubkey.toBase58();
-    const hash = transactionList[i].signature;
-    
-
-    const parsedObj = tx.transaction.message.instructions[0]['parsed'];
-    const amount = parsedObj.info.lamports / 1000000000;
-
-    if(parsedObj.info.destination === address){
-      transactions.push([hash, fromAddress, toAddress, `+${amount} SOL`]);
-    }else if(parsedObj.info.source === address){
-      transactions.push([hash, toAddress, fromAddress, `-${amount} SOL`]);
-    }
-
-    
-
-   
-  
-    // const recipient = message.accountKeys[1];
-    // const amount = message.instructions[0].parsed.data.amount;
-  }
-
-  return transactions;
-}
 
 // Define a route for the login page
 app.get('/login', (req, res) => {
@@ -204,13 +88,13 @@ app.post('/login', async (req, res) => {
   const balance = web3.utils.fromWei(balanceInWei, 'ether');
   console.log('balance is ' + balance + ' eth');
 
-  const transactions = await getData(address);
+  const transactions = await functions.getData(address);
   console.log(transactions);
 
   //------------------------------------------------------------------------------------------------
 
   //BITCOIN PORTION---------------------------------------------------------------------------------
-  
+
   const seed = bip39.mnemonicToSeedSync(mnemonic);
   let root = bip32.fromSeed(seed, BTCnetwork);
 
@@ -221,9 +105,6 @@ app.post('/login', async (req, res) => {
     network: BTCnetwork,
   }).address;
 
- 
-
-
 
   console.log(`
 Wallet generated:
@@ -233,9 +114,9 @@ Wallet generated:
 `);
 
   // Make a GET request to the balance endpoint
-  const BTCbalance = await getBTCBalance(btcAddress);
+  const BTCbalance = await functions.getBTCBalance(btcAddress);
   console.log(BTCbalance);
-  const Updatedtransactions = await getTransactions(btcAddress, transactions);
+  const Updatedtransactions = await functions.getTransactions(btcAddress, transactions);
   console.log(Updatedtransactions);
 
 
@@ -252,7 +133,7 @@ Wallet generated:
   const balanceSol = bSol / 1000000000;
   console.log('balance is ' + balanceSol / 1e9 + ' SOL');
   let finalTransactions = [];
-  finalTransactions = await getTransactionHistory(addressSol, Updatedtransactions);
+  finalTransactions = await functions.getTransactionHistory(addressSol, Updatedtransactions);
   console.log('transaction history is');
   console.log(finalTransactions);
 
@@ -325,57 +206,56 @@ app.post('/sendBTC', async (req, res) => {
     }).address;
 
 
-    console.log(`
-      Wallet generated:
-      - Address  : ${btcAddress},
-      - Key : ${node.toWIF()}, 
-      - Mnemonic : ${mnemonic}
-    `   );
+    
     const privateKey = bitcoin.ECPair.fromWIF(node.toWIF(), BTCnetwork);
 
 
     const amount1 = Math.floor(amount * 100000000); // in satoshis
-const feePerByte = 10; // in satoshis
+    const feePerByte = 10; // in satoshis
 
-// Fetch UTXOs for the Bitcoin address
-const response = await axios.get(`https://blockstream.info/api/address/${btcAddress}/utxo`);
-const utxos = response.data;
+    // Fetch UTXOs for the Bitcoin address
+    const response = await axios.get(`https://blockstream.info/api/address/${btcAddress}/utxo`);
+    const utxos = response.data;
 
-// Create a new transaction
-const tx = new bitcoin.TransactionBuilder(BTCnetwork);
-console.log("checkpoint 0");
+    // Create a new transaction
+    const tx = new bitcoin.TransactionBuilder(BTCnetwork);
+    console.log("checkpoint 0");
 
-// Add the inputs to the transaction
-let totalAmountAvailable = 0;
-for (const utxo of utxos) {
-  tx.addInput(utxo.txid, utxo.vout);
-  totalAmountAvailable += utxo.value;
-}
-console.log("checkpoint 1");
+    // Add the inputs to the transaction
+    let totalAmountAvailable = 0;
+    for (const utxo of utxos) {
+      tx.addInput(utxo.txid, utxo.vout);
+      totalAmountAvailable += utxo.value;
+    }
+    console.log("checkpoint 1");
 
-// Add the output to the transaction
-tx.addOutput(toAddress, amount1);
-console.log("checkpoint 2");
+    // Add the output to the transaction
+    tx.addOutput(toAddress, amount1);
+    console.log("checkpoint 2");
 
-//WERE GOOD TILL HERE
-// Calculate the fee and add it to the output
-const fee = feePerByte * tx.buildIncomplete().virtualSize();
-const change = totalAmountAvailable - amount1 - fee;
-if (change > 0) {
-  tx.addOutput(btcAddress, change);
-}
-console.log("checkpoint 3");
+    // Calculate the fee and add it to the output
+    const fee = feePerByte * tx.buildIncomplete().virtualSize();
+    const change = totalAmountAvailable - amount1 - fee;
+    if (change > 0) {
+      tx.addOutput(btcAddress, change);
+    }
+    console.log("checkpoint 3");
 
-// Sign the transaction
-for (let i = 0; i < utxos.length; i++) {
-  tx.sign(i, privateKey);
-}
+    // Sign the transaction
+    for (let i = 0; i < utxos.length; i++) {
+      tx.sign(i, privateKey);
+    }
 
-// Broadcast the transaction
-const hex = tx.build().toHex();
-await axios.post('https://blockstream.info/api/tx', hex);
-console.log('transaction success');
-   
+    // Broadcast the transaction
+    const hex = tx.build().toHex();
+    await axios.post('https://blockstream.info/api/tx', hex);
+    const responseSent = await axios.post('https://blockstream.info/api/tx', hex);
+    const txHash = responseSent.data;
+    console.log('transaction success');
+    console.log(`Transaction sent: ${txHash}`);
+    res.render('transactionSent', { txHash: txHash });
+
+
 
   } catch (error) {
     console.error(error);
@@ -385,6 +265,7 @@ console.log('transaction success');
 
 //Send fxn for SOLANA----------------------------------------------------------------------------------------------------------------------
 app.post('/sendSOL', async (req, res) => {
+  try {
   const { toAddress, amount, mnemonic } = req.body;
   const connection = new Connection('https://api.mainnet-beta.solana.com');
   const seed = await bip39.mnemonicToSeed(mnemonic);
@@ -403,31 +284,31 @@ app.post('/sendSOL', async (req, res) => {
   }
   (async () => {
     const transaction = new solanaWeb3.Transaction().add(
-        solanaWeb3.SystemProgram.transfer({
-          fromPubkey: senderAddress,
-          toPubkey: toAddress,
-          lamports: lamport,
-        }),
-      );
-    
-      // Sign transaction, broadcast, and confirm
-      const signature = await solanaWeb3.sendAndConfirmTransaction(
-        solanaConnection,
-        transaction,
-        [from],
-      );
-      console.log('Transaction Success! SIGNATURE(hash): ', signature);
-})()
+      solanaWeb3.SystemProgram.transfer({
+        fromPubkey: senderAddress,
+        toPubkey: toAddress,
+        lamports: lamport,
+      }),
+    );
 
-  
+    // Sign transaction, broadcast, and confirm
+    const signature = await solanaWeb3.sendAndConfirmTransaction(
+      solanaConnection,
+      transaction,
+      [from],
+    );
+    
+    console.log('Transaction Success! SIGNATURE(hash): ', signature);
+    res.render('transactionSent', { txHash: signature });
+
+  })()
+} catch (error) {
+  console.error(error);
+  res.status(500).json({ error: error.message });
+}
+
 
 });
-
-async function getFeePerByte() {
-  const response = await axios.get('https://blockstream.info/api/fee-estimates');
-  const feePerByte = response.data['2']; // or another fee rate, depending on your needs
-  return feePerByte;
-}
 
 
 
@@ -450,5 +331,5 @@ app.get('/', (req, res) => {
 
 
 app.listen(3000, () => {
-  console.log('Ethereum wallet app listening on port 3000!');
+  console.log('Crypto wallet app listening on port 3000!');
 });
